@@ -314,7 +314,7 @@
 <div class="container">
   <header>
     <h1>Feature Launch Schedule</h1>
-    <p>Avico Health AI · Feb 20 – May 20, 2026</p>
+    <p>Avico Health AI · Feb 20 – May 31, 2026</p>
   </header>
 
   <div class="legend">
@@ -331,16 +331,16 @@
 </div>
 
 <script>
-  // Timeline range: Feb 16 (Mon) to May 24 (Sun) = 14 weeks
+  // Timeline range: Feb 16 (Mon) to May 31 (Sun) = 14 weeks
   const START = new Date(2026, 1, 16); // Feb 16 Mon
-  const END = new Date(2026, 4, 24);   // May 24 Sun
+  const END = new Date(2026, 4, 31);   // May 31 Sun
   const TOTAL_DAYS = Math.round((END - START) / (1000*60*60*24));
 
   const months = [
     { name: 'February', start: new Date(2026,1,16), end: new Date(2026,1,28) },
     { name: 'March', start: new Date(2026,2,1), end: new Date(2026,2,31) },
     { name: 'April', start: new Date(2026,3,1), end: new Date(2026,3,30) },
-    { name: 'May', start: new Date(2026,4,1), end: new Date(2026,4,24) },
+    { name: 'May', start: new Date(2026,4,1), end: new Date(2026,4,31) },
   ];
 
   // Week start dates for sub-header
