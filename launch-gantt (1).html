@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avico Health — Launch Gantt</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0E1117;
+    --surface: #161B22;
+    --border: #2A3140;
+    --text: #E6EDF3;
+    --text-muted: #8B949E;
+    --maniya: #58A6FF;
+    --ar: #7EE787;
+    --curreri: #D2A8FF;
+    --ain: #FFA657;
+    --test: #F778BA;
+    --maniya-dim: rgba(88, 166, 255, 0.15);
+    --ar-dim: rgba(126, 231, 135, 0.15);
+    --curreri-dim: rgba(210, 168, 255, 0.15);
+    --ain-dim: rgba(255, 166, 87, 0.15);
+    --test-dim: rgba(247, 120, 186, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 40px 32px;
+    overflow-x: auto;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 32px;
+  }
+
+  header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+  }
+
+  header p {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .gantt-wrapper {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .gantt {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-width: 800px;
+  }
+
+  /* Header row */
+  .gantt-header-label {
+    padding: 14px 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+  }
+
+  .gantt-header-timeline {
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+    display: flex;
+    position: relative;
+  }
+
+  .month-col {
+    flex: 1;
+    text-align: center;
+    padding: 14px 0;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-muted);
+    border-right: 1px solid var(--border);
+    position: relative;
+  }
+
+  .month-col:last-child { border-right: none; }
+
+  /* Week sub-headers */
+  .gantt-weeks-label {
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    background: rgba(255,255,255,0.01);
+  }
+
+  .gantt-weeks-timeline {
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    background: rgba(255,255,255,0.01);
+  }
+
+  .week-col {
+    text-align: center;
+    padding: 6px 0;
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text-muted);
+    border-right: 1px solid rgba(42, 49, 64, 0.5);
+    opacity: 0.7;
+  }
+
+  .week-col:last-child { border-right: none; }
+
+  /* Rows */
+  .gantt-row-label {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 52px;
+  }
+
+  .gantt-row-label:last-of-type,
+  .gantt-row-chart:last-of-type {
+    border-bottom: none;
+  }
+
+  .row-customer {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+  }
+
+  .row-feature {
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .row-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .gantt-row-chart {
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    min-height: 52px;
+  }
+
+  /* Vertical grid lines for weeks */
+  .grid-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: rgba(42, 49, 64, 0.4);
+  }
+
+  /* Today marker */
+  .today-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #F85149;
+    z-index: 5;
+    opacity: 0.7;
+  }
+
+  .today-label {
+    position: absolute;
+    top: -22px;
+    transform: translateX(-50%);
+    font-size: 9px;
+    font-family: 'DM Mono', monospace;
+    color: #F85149;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+  }
+
+  /* Bars */
+  .bar {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'DM Mono', monospace;
+    cursor: default;
+    transition: filter 0.2s ease, transform 0.15s ease;
+    z-index: 2;
+  }
+
+  .bar:hover {
+    filter: brightness(1.2);
+    transform: translateY(-50%) scale(1.03);
+    z-index: 10;
+  }
+
+  .bar.maniya { background: var(--maniya); color: #0E1117; }
+  .bar.ar { background: var(--ar); color: #0E1117; }
+  .bar.curreri { background: var(--curreri); color: #0E1117; }
+  .bar.ain { background: var(--ain); color: #0E1117; }
+  .bar.test { background: var(--test); color: #0E1117; }
+
+  /* Milestone diamond for single-day events */
+  .bar.milestone-bar {
+    width: 28px !important;
+    height: 28px;
+    border-radius: 6px;
+    transform: translateY(-50%) rotate(45deg);
+    font-size: 0;
+  }
+  .bar.milestone-bar:hover {
+    transform: translateY(-50%) rotate(45deg) scale(1.15);
+  }
+
+  .tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1C2330;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    white-space: nowrap;
+    z-index: 20;
+    color: var(--text);
+    pointer-events: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  .bar:hover .tooltip {
+    display: block;
+    transform: translateX(-50%) rotate(0deg);
+  }
+
+  /* Row hover */
+  .gantt-row-chart:hover {
+    background: rgba(255,255,255,0.015);
+  }
+
+  /* Alternating rows */
+  .gantt-row-label:nth-of-type(odd),
+  .gantt-row-chart:nth-of-type(odd) {
+    background: rgba(255,255,255,0.01);
+  }
+
+  .gantt-row-chart:nth-of-type(odd):hover {
+    background: rgba(255,255,255,0.025);
+  }
+
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Feature Launch Schedule</h1>
+    <p>Avico Health AI · Feb 20 – May 20, 2026</p>
+  </header>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background: var(--maniya)"></div> Maniya Health</div>
+    <div class="legend-item"><div class="legend-dot" style="background: var(--ar)"></div> Advanced Retina</div>
+    <div class="legend-item"><div class="legend-dot" style="background: var(--test)"></div> Test & Feedback</div>
+    <div class="legend-item"><div class="legend-dot" style="background: var(--curreri)"></div> Curreri</div>
+    <div class="legend-item"><div class="legend-dot" style="background: var(--ain)"></div> AIN</div>
+  </div>
+
+  <div class="gantt-wrapper">
+    <div class="gantt" id="gantt"></div>
+  </div>
+</div>
+
+<script>
+  // Timeline range: Feb 16 (Mon) to May 24 (Sun) = 14 weeks
+  const START = new Date(2026, 1, 16); // Feb 16 Mon
+  const END = new Date(2026, 4, 24);   // May 24 Sun
+  const TOTAL_DAYS = Math.round((END - START) / (1000*60*60*24));
+
+  const months = [
+    { name: 'February', start: new Date(2026,1,16), end: new Date(2026,1,28) },
+    { name: 'March', start: new Date(2026,2,1), end: new Date(2026,2,31) },
+    { name: 'April', start: new Date(2026,3,1), end: new Date(2026,3,30) },
+    { name: 'May', start: new Date(2026,4,1), end: new Date(2026,4,24) },
+  ];
+
+  // Week start dates for sub-header
+  const weeks = [];
+  let d = new Date(START);
+  while (d < END) {
+    weeks.push(new Date(d));
+    d.setDate(d.getDate() + 7);
+  }
+
+  const rows = [
+    {
+      customer: 'Maniya', color: 'maniya',
+      feature: 'In/Out Network + Primary/Secondary Coverage',
+      sub: null,
+      start: new Date(2026, 1, 20), end: new Date(2026, 1, 20), label: '2/20'
+    },
+    {
+      customer: 'Maniya', color: 'maniya',
+      feature: 'Write Back to Practice Fusion',
+      sub: null,
+      start: new Date(2026, 1, 25), end: new Date(2026, 1, 25), label: '2/25'
+    },
+    {
+      customer: 'Maniya', color: 'maniya',
+      feature: 'Scheduled Runs (Hourly)',
+      sub: null,
+      start: new Date(2026, 2, 2), end: new Date(2026, 2, 2), label: '3/2'
+    },
+    {
+      customer: 'Adv. Retina', color: 'ar',
+      feature: 'Benefits Verification — Production Testing',
+      sub: null,
+      start: new Date(2026, 1, 27), end: new Date(2026, 1, 27), label: '2/27'
+    },
+    {
+      customer: 'Adv. Retina', color: 'ar',
+      feature: 'Referral Management — Production Testing',
+      sub: null,
+      start: new Date(2026, 2, 2), end: new Date(2026, 2, 2), label: '3/2'
+    },
+    {
+      customer: 'Adv. Retina', color: 'ar',
+      feature: 'Benefits Verification — Production Launch',
+      sub: null,
+      start: new Date(2026, 2, 13), end: new Date(2026, 2, 13), label: '3/13'
+    },
+    {
+      customer: 'Adv. Retina', color: 'ar',
+      feature: 'Referral Management — Production Launch',
+      sub: null,
+      start: new Date(2026, 2, 20), end: new Date(2026, 2, 20), label: '3/20'
+    },
+
+    {
+      customer: 'Curreri', color: 'curreri',
+      feature: 'Criterions EHR Integration Setup',
+      sub: null,
+      start: new Date(2026, 2, 9), end: new Date(2026, 2, 9), label: '3/9'
+    },
+    {
+      customer: 'Curreri', color: 'curreri',
+      feature: 'Benefits Verification — Production Testing',
+      sub: null,
+      start: new Date(2026, 2, 16), end: new Date(2026, 2, 16), label: '3/16'
+    },
+    {
+      customer: 'AIN', color: 'ain',
+      feature: 'Veradigm Integration Setup',
+      sub: null,
+      start: new Date(2026, 2, 9), end: new Date(2026, 2, 9), label: '3/9'
+    },
+    {
+      customer: 'Curreri', color: 'curreri',
+      feature: 'Benefits Verification — Production Launch',
+      sub: null,
+      start: new Date(2026, 2, 23), end: new Date(2026, 2, 23), label: '3/23'
+    },
+    {
+      customer: 'Adv. Retina', color: 'ar',
+      feature: 'Prior Authorization',
+      sub: null,
+      start: new Date(2026, 3, 22), end: new Date(2026, 3, 22), label: '4/22'
+    },
+    {
+      customer: 'Curreri', color: 'curreri',
+      feature: 'Prior Authorization',
+      sub: null,
+      start: new Date(2026, 3, 15), end: new Date(2026, 3, 15), label: '4/15'
+    },
+    {
+      customer: 'AIN', color: 'ain',
+      feature: 'Benefits Verification + Cost Estimates',
+      sub: null,
+      start: new Date(2026, 3, 30), end: new Date(2026, 3, 30), label: '4/30'
+    },
+    {
+      customer: 'AIN', color: 'ain',
+      feature: 'Prior Authorization',
+      sub: null,
+      start: new Date(2026, 4, 20), end: new Date(2026, 4, 20), label: '5/20'
+    },
+  ];
+
+  function dayOffset(date) {
+    return Math.round((date - START) / (1000*60*60*24));
+  }
+
+  function pct(days) {
+    return (days / TOTAL_DAYS * 100);
+  }
+
+  const gantt = document.getElementById('gantt');
+
+  // --- Header: Feature | Month columns ---
+  const hlabel = document.createElement('div');
+  hlabel.className = 'gantt-header-label';
+  hlabel.textContent = 'Feature';
+  gantt.appendChild(hlabel);
+
+  const htimeline = document.createElement('div');
+  htimeline.className = 'gantt-header-timeline';
+  months.forEach(m => {
+    const mStart = m.start < START ? START : m.start;
+    const mEnd = m.end > END ? END : m.end;
+    const mDays = Math.round((mEnd - mStart) / (1000*60*60*24)) + 1;
+    const col = document.createElement('div');
+    col.className = 'month-col';
+    col.style.flex = mDays;
+    col.textContent = m.name;
+    htimeline.appendChild(col);
+  });
+  gantt.appendChild(htimeline);
+
+  // --- Week sub-headers ---
+  const wlabel = document.createElement('div');
+  wlabel.className = 'gantt-weeks-label';
+  gantt.appendChild(wlabel);
+
+  const wtimeline = document.createElement('div');
+  wtimeline.className = 'gantt-weeks-timeline';
+  weeks.forEach(w => {
+    const col = document.createElement('div');
+    col.className = 'week-col';
+    col.style.flex = '1';
+    const mo = w.getMonth() + 1;
+    const da = w.getDate();
+    col.textContent = `${mo}/${da}`;
+    wtimeline.appendChild(col);
+  });
+  gantt.appendChild(wtimeline);
+
+  // --- Data rows ---
+  rows.forEach((row, i) => {
+    // Label
+    const label = document.createElement('div');
+    label.className = 'gantt-row-label';
+    const custSpan = document.createElement('div');
+    custSpan.className = 'row-customer';
+    custSpan.style.color = `var(--${row.color})`;
+    custSpan.textContent = row.customer;
+    label.appendChild(custSpan);
+
+    const featSpan = document.createElement('div');
+    featSpan.className = 'row-feature';
+    featSpan.textContent = row.feature;
+    label.appendChild(featSpan);
+
+    if (row.sub) {
+      const subSpan = document.createElement('div');
+      subSpan.className = 'row-sub';
+      subSpan.textContent = row.sub;
+      label.appendChild(subSpan);
+    }
+
+    gantt.appendChild(label);
+
+    // Chart area
+    const chart = document.createElement('div');
+    chart.className = 'gantt-row-chart';
+
+    // Week grid lines
+    weeks.forEach(w => {
+      const line = document.createElement('div');
+      line.className = 'grid-line';
+      line.style.left = pct(dayOffset(w)) + '%';
+      chart.appendChild(line);
+    });
+
+    // Today line (only on first row, spans visually)
+    if (i === 0) {
+      const today = new Date(2026, 1, 18);
+      const todayPct = pct(dayOffset(today));
+      const todayLine = document.createElement('div');
+      todayLine.className = 'today-line';
+      todayLine.style.left = todayPct + '%';
+      const todayLabel = document.createElement('div');
+      todayLabel.className = 'today-label';
+      todayLabel.textContent = 'TODAY';
+      todayLine.appendChild(todayLabel);
+      chart.appendChild(todayLine);
+    } else {
+      const today = new Date(2026, 1, 18);
+      const todayPct = pct(dayOffset(today));
+      const todayLine = document.createElement('div');
+      todayLine.className = 'today-line';
+      todayLine.style.left = todayPct + '%';
+      chart.appendChild(todayLine);
+    }
+
+    // Bar
+    const startDay = dayOffset(row.start);
+    const endDay = dayOffset(row.end);
+    const duration = endDay - startDay;
+    const isSingleDay = duration === 0;
+
+    const bar = document.createElement('div');
+    bar.className = `bar ${row.color}`;
+    bar.style.left = pct(startDay) + '%';
+
+    if (isSingleDay) {
+      bar.style.width = Math.max(pct(3), 2.5) + '%';
+      bar.style.minWidth = '36px';
+      bar.style.borderRadius = '6px';
+    } else {
+      bar.style.width = Math.max(pct(duration), 2.5) + '%';
+      bar.style.minWidth = '48px';
+    }
+
+    bar.textContent = row.label;
+
+    // Tooltip
+    const tooltip = document.createElement('div');
+    tooltip.className = 'tooltip';
+    tooltip.innerHTML = `<strong>${row.customer}</strong>: ${row.feature}`;
+    bar.appendChild(tooltip);
+
+    chart.appendChild(bar);
+    gantt.appendChild(chart);
+  });
+</script>
+
+</body>
+</html>
